@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Progress Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            margin-bottom: 5px;
+        }
+        .input-group input, .input-group select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+        .table th {
+            background-color: #f8f9fa;
+        }
+        .progress {
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 20px;
+            width: 100%;
+        }
+        .progress-bar {
+            background-color: #28a745;
+            height: 100%;
+            width: 0;
+            text-align: center;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Study Progress Tracker</h1>
+
+    <!-- General Info Section -->
+    <div class="input-group">
+        <label for="name">Candidate Name:</label>
+        <input type="text" id="name" placeholder="Enter your name">
+    </div>
+    <div class="input-group">
+        <label for="university">Target University:</label>
+        <input type="text" id="university" placeholder="Enter target university">
+    </div>
+    <div class="input-group">
+        <label for="exam-date">Admission Test Date:</label>
+        <input type="date" id="exam-date">
+    </div>
+
+    <!-- Subject Progress Section -->
+    <h2>Subject Progress</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Chapters Completed</th>
+                <th>Total Chapters</th>
+                <th>Progress</th>
+            </tr>
+        </thead>
+        <tbody id="subject-progress">
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <!-- Add Subject Progress -->
+    <div class="input-group">
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" placeholder="e.g., Bangla">
+    </div>
+    <div class="input-group">
+        <label for="completed">Chapters Completed:</label>
+        <input type="number" id="completed" placeholder="e.g., 5">
+    </div>
+    <div class="input-group">
+        <label for="total">Total Chapters:</label>
+        <input type="number" id="total" placeholder="e.g., 20">
+    </div>
+    <button class="button" onclick="addProgress()">Add Subject Progress</button>
+
+    <!-- Study Plan Section -->
+    <h2>Study Plan</h2>
+    <div class="input-group">
+        <label for="plan">Study Plan:</label>
+        <input type="text" id="plan" placeholder="e.g., Study Math for 2 hours">
+    </div>
+    <button class="button" onclick="addPlan()">Add to Plan</button>
+    
+    <ul id="study-plan"></ul>
+</div>
+
+<script>
+    // Load data from local storage on page load
+    window.onload = function() {
+        loadGeneralInfo();
+        loadSubjectProgress();
+        loadStudyPlan();
+    }
+
+    // Save and load general info
+    function saveGeneralInfo() {
+        const name = document.getElementById('name').value;
+        const university = document.getElementById('university').value;
+        const examDate = document.getElementById('exam-date').value;
+
+        const generalInfo = {
+            name: name,
+            university: university,
+            examDate: examDate
+        };
+
+        localStorage.setItem('generalInfo', JSON.stringify(generalInfo));
+    }
+
+    function loadGeneralInfo() {
+        const generalInfo = JSON.parse(localStorage.getItem('generalInfo'));
+        if (generalInfo) {
+            document.getElementById('name').value = generalInfo.name;
+            document.getElementById('university').value = generalInfo.university;
+            document.getElementById('exam-date').value = generalInfo.examDate;
+        }
+    }
+
+    // Save and load subject progress
+    function addProgress() {
+        const subject = document.getElementById('subject').value;
+        const completed = document.getElementById('completed').value;
+        const total = document.getElementById('total').value;
+
+        if (subject && completed && total) {
+            const progressPercent = (completed / total) * 100;
+
+            const row = `<tr>
+                <td>${subject}</td>
+                <td>${completed}</td>
+                <td>${total}</td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: ${progressPercent}%;">${progressPercent.toFixed(1)}%</div>
+                    </div>
+                </td>
+            </tr>`;
+
+            document.getElementById('subject-progress').insertAdjacentHTML('beforeend', row);
+
+            // Save to local storage
+            const subjectProgress = JSON.parse(localStorage.getItem('subjectProgress')) || [];
+            subjectProgress.push({ subject, completed, total, progressPercent });
+            localStorage.setItem('subjectProgress', JSON.stringify(subjectProgress));
+
+            // Clear inputs
+            document.getElementById('subject').value = '';
+            document.getElementById('completed').value = '';
+            document.getElementById('total').value = '';
+        } else {
+            alert('Please fill out all fields.');
+        }
+    }
+
+    function loadSubjectProgress() {
+        const subjectProgress = JSON.parse(localStorage.getItem('subjectProgress'));
+        if (subjectProgress) {
+            subjectProgress.forEach(item => {
+                const row = `<tr>
+                    <td>${item.subject}</td>
+                    <td>${item.completed}</td>
+                    <td>${item.total}</td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: ${item.progressPercent}%;">${item.progressPercent.toFixed(1)}%</div>
+                        </div>
+                    </td>
+                </tr>`;
+                document.getElementById('subject-progress').insertAdjacentHTML('beforeend', row);
+            });
+        }
+    }
+
+    // Save and load study plan
+    function addPlan() {
+        const plan = document.getElementById('plan').value;
+        if (plan) {
+            const listItem = `<li>${plan}</li>`;
+            document.getElementById('study-plan').insertAdjacentHTML('beforeend', listItem);
+
+            // Save to local storage
+            const studyPlan = JSON.parse(localStorage.getItem('studyPlan')) || [];
+            studyPlan.push(plan);
+            localStorage.setItem('studyPlan', JSON.stringify(studyPlan));
+
+            // Clear input
+            document.getElementById('plan').value = '';
+        } else {
+            alert('Please enter a study plan.');
+        }
+    }
+
+    function loadStudyPlan() {
+        const studyPlan = JSON.parse(localStorage.getItem('studyPlan'));
+        if (studyPlan) {
+            studyPlan.forEach(item => {
+                const listItem = `<li>${item}</li>`;
+                document.getElementById('study-plan').insertAdjacentHTML('beforeend', listItem);
+            });
+        }
+    }
+
+    // Save general info on input change
+    document.getElementById('name').addEventListener('input', saveGeneralInfo);
+    document.getElementById('university').addEventListener('input', saveGeneralInfo);
+    document.getElementById('exam-date').addEventListener('change', saveGeneralInfo);
+
+</script>
+
+</body>
+</html>
